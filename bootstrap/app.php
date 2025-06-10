@@ -20,7 +20,10 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->append([
         \App\Http\Middleware\HandleSanctumAuthenticationFailure::class,
+
     ]);
+    
+    // $middleware->statefulApi();
     })
     ->withExceptions(function (Exceptions $exceptions) {
           $exceptions->reportable(function (Throwable $e) {

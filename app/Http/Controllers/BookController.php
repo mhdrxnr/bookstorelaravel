@@ -46,10 +46,7 @@ class BookController
     {
        $data = $request->validated();
 
-    // Handle image upload
-    if ($request->hasFile('image')) {
-        $data['image'] = $request->file('image')->store('books', 'public');
-    }
+    
 
     $book = Book::create($data);
 
@@ -74,7 +71,10 @@ class BookController
     {
         $Book = Book::findOrFail($id);
         $Book->update($request->validated());
-
+// Handle image upload
+    if ($request->hasFile('image')) {
+        $data['image'] = $request->file('image')->store('books', 'public');
+    }
         return response()->json($Book, 201);
     }
 

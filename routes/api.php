@@ -19,15 +19,23 @@ Route::get('/admin/dashboard', function (Request $request) {
 
 
 
-Route::apiResource('users', UserController::class);
+
 Route::post('login',[UserController::class,'login']);
 Route::post('logout',[UserController::class,'logout'])->middleware('auth:sanctum');
+
+Route::put('/clients/{id}', [ClientController::class, 'update']);
+Route::put('/users/{id}', [UserController::class, 'update']);
+
+
+Route::middleware('auth:sanctum')->get('/me', function (Request $request) {
+    return $request->user();
+});
 
 
 
 Route::middleware('auth:sanctum')->group(function(){
 Route::get('ordersall',[OrderController::class,'allOrders'])->middleware('checkUser');
-
+Route::apiResource('users', UserController::class);
 Route::apiResource('clients', ClientController::class);
 Route::apiResource('categories', CategoryController::class);
 Route::apiResource('books', BookController::class);
@@ -48,3 +56,4 @@ Route::get('clients/{orderID}/orders',[OrderController::class,'getOrderClient'])
 
 
 });
+Route::post('/users', [UserController::class, 'store']);

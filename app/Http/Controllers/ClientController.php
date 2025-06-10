@@ -7,7 +7,7 @@ use App\Http\Requests\Client\UpdateClientRequest;
 use App\Models\Client;
 use App\Models\User;
 use Illuminate\Http\Request;
-
+use Illuminate\Validation\ValidationException;
 class ClientController
 {
 
@@ -33,7 +33,7 @@ class ClientController
     public function store(StoreClientRequest $request)
     {
         $Client = Client::create($request->validated());
-
+       
         return response()->json($Client, 201);
         
     }
@@ -51,13 +51,29 @@ class ClientController
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateClientRequest $request, $id)
-    {
-        $Client = Client::findOrFail($id);
-        $Client->update($request->validated());
+  public function update(Request $request, $id)
+{
+    $client = Client::findOrFail($id);
 
-         return response()->json($Client, 201);
+    $validated = $request->validate([
+        'firstName' => 'required|string|max:255',
+        'lastName' => 'required|string|max:255',
+        'number' => 'required|string|max:20',
+        'address' => 'required|string|max:255',
+        'wilaya' => 'required|string|max:100',
+        'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048'
+    ]);
+
+    if ($request->hasFile('image')) {
+        $imagePath = $request->file('image')->store('clients', 'public');
+        $validated['image'] = asset('storage/' . $imagePath);
     }
+
+    $client->update($validated);
+
+    return response()->json(['message' => 'Client updated successfully', 'client' => $client]);
+}
+
 
     /**
      * Remove the specified resource from storage.

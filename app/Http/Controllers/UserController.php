@@ -23,25 +23,43 @@ class UserController
         return response()->json($client, 200);
     }
 
- public function login(Request $request) {
+ public function login(Request $request)
+{
+    $user = User::where('email', $request->email)->first();
 
-    if (!Auth::attempt($request->only('email', 'password'))) {
-        return response()->json(['message' => 'Incorrect password or email'], 401);
+    if (!$user || !Hash::check($request->password, $user->password)) {
+        return response()->json(['message' => 'Invalid credentials'], 401);
     }
 
-    $user = User::where('email', $request->email)->firstOrFail();
-    $token = $user->createToken('auth_Token')->plainTextToken;
+    Auth::login($user);
+
+    $client = $user->client; // make sure relationship is defined
 
     return response()->json([
-        'message' => 'Welcome again',
-        'user' => $user, 
-        'token' => $token 
-    ], 200);
+        'message' => 'Login successful',
+        'user' => [
+            'user_id' => $user->user_id,
+            'email' => $user->email,
+            'role' => $user->role
+        ],
+        'client' => $client ? [
+            'client_id' => $client->client_id,
+            'firstName' => $client->firstName,
+            'lastName' => $client->lastName,
+            'number' => $client->number,
+            'address' => $client->address,
+            'wilaya' => $client->wilaya,
+            'imageUrl' => $client->imageUrl
+        ] : null
+    ]);
 }
 
-public function logout(Request $request)  {
-    $request->user()->currentAccessToken()->delete();
-    return response(['message'=>'you are out']);
+
+public function logout(Request $request) {
+    Auth::guard('web')->logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+    return response(['message' => 'Logged out']);
 }
 
     /**
@@ -95,7 +113,7 @@ public function logout(Request $request)  {
     {
         $User = User::findOrFail($id);
         $User->update($request->validate([
-            'email'=>'sometimes|email|unique:users,email',
+            'email' => 'nullable|email|unique:users,email,' . $id . ',user_id',
             'password'=>'nullable|string|min:8',
             'role'=>'sometimes|in:admin,client',
         ]));

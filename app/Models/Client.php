@@ -10,10 +10,11 @@ class Client extends Model
     protected $primaryKey = 'client_id';
     public $incrementing = true;
     protected $keyType = 'int';
-    protected $fillable =['firstName','lastName','number','wilaya','address','userID'];
+    protected $fillable =['image','firstName','lastName','number','wilaya','address','userID'];
+    protected $visible = ['client_id', 'firstName', 'lastName', 'number', 'wilaya', 'address', 'image', 'userID'];
 
     public function user(){
-        return $this->hasOne(Client::class);
+        return $this->belongsTo(User::class, 'userID', 'user_id');
     }
 
    

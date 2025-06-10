@@ -22,12 +22,13 @@ class UpdateClientRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'userID' => 'sometimes|exists:users,user_id',
-            'firstName' => 'sometimes|string|max:255',
-            'lastName' => 'sometimes|string|max:255',
-            'number' => 'sometimes|numeric|min:10',
-            'wilaya' => 'sometimes|string|max:100',
-            'address' => 'nullable|string',
+            'firstName' => 'nullable|string|max:255',
+            'lastName' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'address' => 'nullable|string|max:255',
+            'number' => 'nullable|string|max:20',
+            'wilaya' => 'nullable|string|max:100',
+            'image' => 'nullable|image|max:2048',
         ];
     }
 }

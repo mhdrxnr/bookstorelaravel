@@ -28,6 +28,7 @@ class StoreClientRequest extends FormRequest
             'number' => 'required|numeric|min:10',
             'wilaya' => 'required|string|max:100',
             'address' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
         ];
     }
 }
