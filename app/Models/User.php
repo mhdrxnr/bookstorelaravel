@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
-
+use Illuminate\Support\Facades\Auth;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -25,7 +25,7 @@ class User extends Authenticatable
         'role'
     ];
 
-    protected $primaryKey = 'user_id'; 
+    protected $primaryKey = 'user_id';
     public $incrementing = true;
     protected $keyType = 'int';
 
@@ -52,13 +52,23 @@ class User extends Authenticatable
         ];
     }
 
-    public function client(){
+  
+
+
+     public function favoriteBooks()
+     {
+        return $this->belongsToMany(Book::class, 'favorites')->withTimestamps();
+    }
+
+    public function client()
+    {
         return $this->hasOne(Client::class, 'userID', 'user_id');
     }
 
-      public function orders()
+    public function orders()
     {
-        return $this->hasMany(Order::class,'userID');
+        return $this->hasMany(Order::class, 'userID');
     }
-    
+
+   
 }

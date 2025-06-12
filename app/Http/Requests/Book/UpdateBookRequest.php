@@ -22,7 +22,7 @@ class UpdateBookRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title'=>'sometimes|string|min:10|max:50',
+            'title'=>'sometimes|string|min:10|max:50|unique:books,title',
             'author'=>'sometimes|string|min:10|max:50',
             'price'=>'sometimes|numeric|min:0',
             'description'=>'nullable|string|min:30|max:100',

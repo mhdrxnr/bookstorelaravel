@@ -4,11 +4,51 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Book\StoreBookRequest;
 use App\Http\Requests\Book\UpdateBookRequest;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Book;
 use Illuminate\Http\Request;
 
 class BookController
 {
+   public function addFavoriteBook($book_id)
+{
+    $user = Auth::user();
+    $book = Book::findOrFail($book_id);
+
+    if (!$user->favoriteBooks()->where('book_id', $book_id)->exists()) {
+        $user->favoriteBooks()->attach($book_id);
+    }
+
+    return response()->json(['message' => 'Book added to favorites']);
+}
+
+public function deleteFavoriteBook($book_id)
+{
+    $user = Auth::user();
+    $user->favoriteBooks()->detach($book_id);
+
+    return response()->json(['message' => 'Book removed from favorites']);
+}
+
+
+
+public function getFavoriteBooks()
+{
+    $user = Auth::user();
+
+    if (!$user) {
+        return response()->json(['message' => 'Unauthenticated'], 401);
+    }
+
+    $favorites = $user->favoriteBooks()->with('category')->get();
+
+    return response()->json($favorites);
+}
+
+
+
+
+
 
     public function addBookToOrder(Request $request, $bookID) {
         $book = Book::findOrFail($bookID);
@@ -34,7 +74,7 @@ class BookController
      */
     public function index()
     {
-        $Book = Book::all();
+        $Book = Book::with('category')->get();
 
         return response()->json($Book, 200);
     }
@@ -43,23 +83,23 @@ class BookController
      * Store a newly created resource in storage.
      */
     public function store(StoreBookRequest $request)
-    {
-       $data = $request->validated();
+{
+    $data = $request->validated();
 
-    
+    if ($request->hasFile('image')) {
+        $data['image'] = $request->file('image')->store('books', 'public');
+    }
 
     $book = Book::create($data);
 
     return response()->json($book, 201);
-    }
-
+}
     /**
      * Display the specified resource.
      */
     public function show( $id)
     {
         $Book = Book::findOrFail($id);
-        $Book->all();
 
         return response()->json($Book, 200);
     }
@@ -67,16 +107,20 @@ class BookController
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateBookRequest $request, $id)
-    {
-        $Book = Book::findOrFail($id);
-        $Book->update($request->validated());
-// Handle image upload
+   public function update(UpdateBookRequest $request, $id)
+{
+    $Book = Book::findOrFail($id);
+    $data = $request->validated();
+
     if ($request->hasFile('image')) {
         $data['image'] = $request->file('image')->store('books', 'public');
     }
-        return response()->json($Book, 201);
-    }
+
+    $Book->update($data);
+
+    return response()->json($Book->load('category'), 200);
+}
+
 
     /**
      * Remove the specified resource from storage.
