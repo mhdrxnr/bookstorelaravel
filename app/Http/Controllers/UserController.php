@@ -17,11 +17,33 @@ use function Pest\Laravel\json;
 
 class UserController 
 {
+public function me(Request $request)
+{
+    $user = $request->user()->load(['client', 'favoriteBooks']);
+    $client = $user->client;
 
-    public function getClientUser($userID){
-        $client = User::findOrFail($userID)->client;
-        return response()->json($client, 200);
-    }
+    return response()->json([
+        'user_id' => $user->user_id,
+        'email' => $user->email,
+        'role' => $user->role,
+        'client' => $client ? [
+            'client_id' => $client->client_id,
+            'firstName' => $client->firstName,
+            'lastName' => $client->lastName,
+            'number' => $client->number,
+            'address' => $client->address,
+            'wilaya' => $client->wilaya,
+            'imageUrl' => $client->image,
+        ] : null,
+        'favoriteBooks' => $user->favoriteBooks,
+    ]);
+}
+
+    public function getClientUser($userID)
+{
+    $client = User::findOrFail($userID)->client;
+    return response()->json($client, 200);
+}
 
  public function login(Request $request)
 {
