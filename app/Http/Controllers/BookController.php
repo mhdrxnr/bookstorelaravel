@@ -6,14 +6,22 @@ use App\Http\Requests\Book\StoreBookRequest;
 use App\Http\Requests\Book\UpdateBookRequest;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Book;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class BookController
 {
-   public function addFavoriteBook($book_id)
+   public function addFavoriteBook(Request $request, $book_id)
 {
-    $user = Auth::user();
+    $userID = $request->input('user_id');
+
+    if (!$userID) {
+        return response()->json(['message' => 'User ID is required'], 400);
+    }
+
     $book = Book::findOrFail($book_id);
+
+    $user = User::where('user_id', $userID)->firstOrFail();
 
     if (!$user->favoriteBooks()->where('book_id', $book_id)->exists()) {
         $user->favoriteBooks()->attach($book_id);
@@ -22,9 +30,17 @@ class BookController
     return response()->json(['message' => 'Book added to favorites']);
 }
 
-public function deleteFavoriteBook($book_id)
+
+public function deleteFavoriteBook(Request $request, $book_id)
 {
-    $user = Auth::user();
+    $userID = $request->input('user_id');
+
+    if (!$userID) {
+        return response()->json(['message' => 'User ID is required'], 400);
+    }
+
+    $user = User::where('user_id', $userID)->firstOrFail();
+
     $user->favoriteBooks()->detach($book_id);
 
     return response()->json(['message' => 'Book removed from favorites']);
@@ -32,18 +48,21 @@ public function deleteFavoriteBook($book_id)
 
 
 
-public function getFavoriteBooks()
+public function getFavoriteBooks(Request $request)
 {
-    $user = Auth::user();
+    $userID = $request->input('user_id');
 
-    if (!$user) {
-        return response()->json(['message' => 'Unauthenticated'], 401);
+    if (!$userID) {
+        return response()->json(['message' => 'User ID is required'], 400);
     }
+
+    $user = User::where('user_id', $userID)->firstOrFail();
 
     $favorites = $user->favoriteBooks()->with('category')->get();
 
     return response()->json($favorites);
 }
+
 
 
 

@@ -5,19 +5,34 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Order\StoreOrderRequest;
 use App\Http\Requests\Order\UpdateOrderRequest;
 use App\Models\Order;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use function Pest\Laravel\json;
 
 class OrderController
 {
 
-       public function getOrderClient($orderID){
-        $order = Order::with('client')->findOrFail($orderID);
+     public function getOrderClient($orderID)
+{
+    $order = Order::findOrFail($orderID);
+    $client = $order->user->client; // Assuming you have these relations set up
 
-        return response()->json($order, 200);
+    if (!$client) {
+        return response()->json(['message' => 'Client not found'], 404);
     }
+
+    return response()->json([
+        'firstName' => $client->firstName,
+        'lastName' => $client->lastName,
+        'number' => $client->number,
+        'address' => $client->address,
+        'wilaya' => $client->wilaya,
+    ]);
+}
+
 
      public function allOrders()
     {
@@ -38,46 +53,82 @@ class OrderController
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreOrderRequest $request)
-    {
+ public function store(StoreOrderRequest $request)
+{
+    $validated = $request->validated();
 
-        $user_id=Auth::user()->user_id;
+    // Ensure 'user_id' is present (already validated in StoreOrderRequest)
+    $userID = $validated['user_id'];
 
-        $validated=$request->validated();
-        $validated['userID']=$user_id;
+    // Map 'user_id' to 'userID' if your model uses camelCase
+    $validated['userID'] = $userID;
+    unset($validated['user_id']);
 
-        $Order = Order::create($validated);
+    $bookItems = $request->input('books');
 
-        return response()->json($Order, 201);
+    DB::beginTransaction();
+
+    try {
+        // Create the order with userID
+        $order = Order::create($validated);
+
+        // Insert book items into order_details
+        foreach ($bookItems as $item) {
+            DB::table('order_details')->insert([
+                'orderID' => $order->order_id,
+                'bookID' => $item['bookID'],
+                'quantity' => $item['quantity'],
+                'unitPrice' => $item['unitPrice'],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        DB::commit();
+
+        return response()->json([
+            'message' => 'Order placed successfully.',
+            'order' => $order,
+        ], 201);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'message' => 'Order failed.',
+            'error' => $e->getMessage(),
+        ], 500);
     }
+}
+
 
     /**
      * Display the specified resource.
      */
-    public function show( $id)
-    {
-        $Order = Order::findOrFail($id);
-        $Order->all();
+public function show($id)
+{
+    $order = Order::with(['books' => function ($query) {
+        $query->withPivot('quantity', 'unitPrice');
+    }])->findOrFail($id);
 
-        return response()->json($Order, 200);
-    }
+    return response()->json($order, 200);
+}
+
 
     /**
      * Update the specified resource in storage.
      */
     public function update(UpdateOrderRequest $request, $id)
-    {
-        $userID = Auth::user()->user_id;
-        $Order = Order::findOrFail($id);
+{
+    $order = Order::findOrFail($id);
 
-        if ($Order->userID != $userID)
-        return response()->json(['message'=>'not authourized'], 403);
-        
+    $order->update($request->validated());
 
-        $Order->update($request->validated());
+    return response()->json($order, 200);
+}
 
-        return response()->json($Order, 201);
-    }
+
+
+
 
     /**
      * Remove the specified resource from storage.

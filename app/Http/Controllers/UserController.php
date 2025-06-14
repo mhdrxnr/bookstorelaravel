@@ -9,13 +9,13 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-
+use Illuminate\Routing\Controller;
 
 
 
 use function Pest\Laravel\json;
 
-class UserController
+class UserController 
 {
 
     public function getClientUser($userID){
@@ -49,7 +49,7 @@ class UserController
             'number' => $client->number,
             'address' => $client->address,
             'wilaya' => $client->wilaya,
-            'imageUrl' => $client->imageUrl
+            'imageUrl' =>  $client->image
         ] : null
     ]);
 }

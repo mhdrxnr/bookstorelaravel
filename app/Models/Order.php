@@ -14,7 +14,7 @@ class Order extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class,'userID');
+        return $this->belongsTo(User::class,'userID','user_id');
     }
 
     public function books()

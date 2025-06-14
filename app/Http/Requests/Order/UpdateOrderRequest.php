@@ -23,7 +23,7 @@ class UpdateOrderRequest extends FormRequest
     {
         return [
             'totalPrice' => 'sometimes|numeric|min:0',
-            'status' => 'sometimes|string|in:pending,completed,canceled',
+            'status' => 'sometimes|in:pending,completed,canceled',
         ];
     }
 }

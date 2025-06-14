@@ -155,9 +155,7 @@ return [
     | domain and all subdomains. Typically, this shouldn't be changed.
     |
     */
-
-    'domain' => env('SESSION_DOMAIN'),
-
+    'domain' => env('SESSION_DOMAIN', 'localhost'),
     /*
     |--------------------------------------------------------------------------
     | HTTPS Only Cookies
@@ -199,7 +197,7 @@ return [
     |
     */
 
-    'same_site' => env('SESSION_SAME_SITE', 'lax'),
+    'same_site' => 'lax',
 
     /*
     |--------------------------------------------------------------------------

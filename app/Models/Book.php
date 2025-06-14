@@ -31,6 +31,6 @@ class Book extends Model
 
     public function favoriteByUser()
     {
-        return $this->belongsToMany(User::class, 'favorites')->withTimestamps();
+        return $this->belongsToMany(User::class, 'favorites', 'bookID', 'userID')->withTimestamps();
     }
 }
